@@ -1018,10 +1018,11 @@ def inicializar_banco():
             ])
             db.session.commit()
 
+# CRIAÇÃO AUTOMÁTICA DAS TABELAS NO CARREGAMENTO GLOBAL
+inicializar_banco()
 
-import os
 
-
+# EXECUÇÃO DA APLICAÇÃO
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
