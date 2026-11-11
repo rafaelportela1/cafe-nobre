@@ -13,7 +13,7 @@ import os
 import secrets
 
 app = Flask(__name__)
-
+app = Flask(__name__, static_folder='.', static_url_path='')
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cafe_nobre.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = (
