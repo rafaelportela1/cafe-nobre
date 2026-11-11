@@ -343,7 +343,7 @@ def pagina_html(titulo, conteudo):
     </div>
 
     <div class="rodape-direitos">
-        © {{ ano }} Café Nobre. Todos os direitos reservados.
+        © {{ ano }} Café Nobre • Desenvolvido por Rafael Silva Portela - Todos os direitos reservados.
     </div>
 
     <div class="acesso-admin">
@@ -377,16 +377,13 @@ def inicio():
     <div class="card">
 
         {% if 'tradicional' in produto.nome|lower or 'classico' in produto.nome|lower or 'clássico' in produto.nome|lower %}
-            <img src="/icone-cafe-tradicional.jpeg">
-                 class="icone-produto" alt="Café Tradicional">
+         <img src="icone-cafe-tradicional.jpeg" class="icone-produto" alt="Café Tradicional">
 
         {% elif 'especial' in produto.nome|lower %}
-            <img src="/icone-cafe-especial.jpeg">
-                 class="icone-produto" alt="Café Especial">
+        <img src="icone-cafe-especial.jpeg" class="icone-produto" alt="Café Especial">
 
         {% elif 'premium' in produto.nome|lower %}
-            <img src="/icone-cafe-premium.jpeg">
-                 class="icone-produto" alt="Café Premium">
+          <img src="icone-cafe-premium.jpeg" class="icone-produto" alt="Café Premium">
         {% endif %}
 
         <h3>{{ produto.nome }}</h3>
