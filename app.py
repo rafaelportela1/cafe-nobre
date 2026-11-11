@@ -307,16 +307,16 @@ def pagina_html(titulo, conteudo):
             <a href="{{ url_for('ver_estoque') }}">Estoque</a>
             <a href="{{ url_for('pedidos') }}">Pedidos</a>
             <a href="{{ url_for('admin_produtos') }}">Produtos</a>
-   <form method="POST"
-                              action="{{ url_for('logout_admin') }}"
-                              style="display:inline">
-                            <button type="submit">Sair</button>
-                        </form>
-                    {% else %}
-<font face="Arial Black, sans-serif" size="4" color="#D3AF37">
-                       <marquee behavior="efeito">Sejam Bem-Vindos ao Café Nobre - Qualidade e sabor em cada xicára</marquee>
-                    {% endif %}
-</font>
+            <form method="POST"
+                  action="{{ url_for('logout_admin') }}"
+                  style="display:inline">
+                <button type="submit">Sair</button>
+            </form>
+        {% else %}
+            <font face="Arial Black, sans-serif" size="4" color="#D3AF37">
+               <marquee behavior="efeito">Sejam Bem-Vindos ao Café Nobre - Qualidade e sabor em cada xicára</marquee>
+            </font>
+        {% endif %}
     </nav>
 </header>
 
@@ -369,7 +369,6 @@ def inicio():
 
     conteudo = render_template_string(
         """
-
        <h2>Nossos produtos</h2>
 <p>Escolha seus produtos e faça seu pedido.</p>
 
@@ -640,6 +639,7 @@ def finalizar_pedido():
     )
     return pagina_html("Pedido confirmado", conteudo)
 
+
 # LOGIN ADMINISTRATIVO
 
 @app.route("/admin/login", methods=["GET", "POST"])
@@ -768,7 +768,7 @@ def pedidos():
             </h3>
 
             <form method="POST"
-                  action="{{ url_for('excluir_pedido', pedido_id=pedido.id) }}"
+                  action="{{ url_for('excluir_pedido_admin', pedido_id=pedido.id) }}"
                   onsubmit="return confirm('Tem certeza que deseja excluir este pedido?');">
 
                 <button type="submit"
@@ -788,11 +788,12 @@ def pedidos():
 
     return pagina_html("Pedidos", conteudo)
 
+
 # EXCLUIR PEDIDO
 
 @app.route("/excluir-pedido/<int:pedido_id>", methods=["POST"])
 @admin_required
-def excluir_pedido(pedido_id):
+def excluir_pedido_admin(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
 
     try:
@@ -807,6 +808,7 @@ def excluir_pedido(pedido_id):
     except Exception:
         db.session.rollback()
         raise
+
 
 # CADASTRAR E LISTAR PRODUTOS
 
@@ -1019,397 +1021,5 @@ def inicializar_banco():
 
 if __name__ == "__main__":
     inicializar_banco()
-    app.run(debug=True)
-
-# --------------------------------------------------
-# CONSULTA DE ESTOQUE
-# --------------------------------------------------
-
-
-@app.route("/ver-estoque")
-@admin_required
-def ver_estoque_admin():
-    produtos = Produto.query.order_by(Produto.nome).all()
-
-    conteudo = render_template_string(
-        """
-        <h2>Controle de estoque</h2>
-
-        <div class="card rolagem">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Produto</th>
-                        <th>Preço</th>
-                        <th>Estoque</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for produto in produtos %}
-                    <tr>
-                        <td>{{ produto.nome }}</td>
-                        <td>
-                            R$ {{ "%.2f"|format(produto.preco)|replace(".", ",") }}
-                        </td>
-                        <td>{{ produto.estoque }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="3">Nenhum produto cadastrado.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        """,
-        produtos=produtos,
-    )
-
-    return pagina_html("Estoque", conteudo)
-
-
-# --------------------------------------------------
-# CONSULTA DE PEDIDOS
-# --------------------------------------------------
-
-@app.route("/pedidos")
-@admin_required
-def meus_pedidos():
-    lista_pedidos = Pedido.query.order_by(
-        Pedido.data_criacao.desc(),
-        Pedido.id.desc(),
-    ).all()
-
-    conteudo = render_template_string(
-        """
-        <h2>Pedidos realizados</h2>
-
-        {% for pedido in pedidos %}
-        <div class="card">
-            <h3>Pedido #{{ pedido.id }}</h3>
-
-            <p><strong>Cliente:</strong> {{ pedido.cliente_nome }}</p>
-            <p><strong>Telefone:</strong> {{ pedido.telefone }}</p>
-            <p>
-f                <strong>Data:</strong>
-                {{ pedido.data_criacao.strftime("%d/%m/%Y %H:%M")
-                   if pedido.data_criacao else "-" }}
-            </p>
-            <p><strong>Status:</strong> {{ pedido.status }}</p>
-
-            <h4>Itens</h4>
-
-            <ul>
-                {% for item in pedido.itens %}
-                <li>
-                    {{ item.produto.nome }} —
-                    {{ item.quantidade }} unidade(s) —
-                    R$ {{ "%.2f"|format(item.subtotal)|replace(".", ",") }}
-                </li>
-                {% endfor %}
-            </ul>
-
-            <h3>
-                Total:
-                R$ {{ "%.2f"|format(pedido.total)|replace(".", ",") }}
-            </h3>
-        </div>
-        {% else %}
-        <div class="card">Nenhum pedido registrado.</div>
-        {% endfor %}
-        """,
-        pedidos=lista_pedidos,
-    )
-
-    return pagina_html("Pedidos", conteudo)
-
-
-# --------------------------------------------------
-# CADASTRO E LISTAGEM DE PRODUTOS
-# --------------------------------------------------
-
-@app.route("/admin/produtos", methods=["GET", "POST"])
-def gerenciar_produtos_admin():
-    if request.method == "POST":
-        nome = request.form.get("nome", "").strip()
-        descricao = request.form.get("descricao", "").strip()
-
-        try:
-            preco = float(request.form.get("preco", ""))
-            estoque = int(request.form.get("estoque", ""))
-        except (ValueError, TypeError):
-            flash("Informe um preço e uma quantidade válidos.")
-            return redirect(url_for("admin_produtos"))
-
-        if not nome or len(nome) > 100:
-            flash("Informe um nome válido para o produto.")
-            return redirect(url_for("admin_produtos"))
-
-        if len(descricao) > 250:
-            flash("A descrição deve ter até 250 caracteres.")
-            return redirect(url_for("admin_produtos"))
-
-        if preco < 0 or estoque < 0:
-            flash("Preço e estoque não podem ser negativos.")
-            return redirect(url_for("admin_produtos"))
-
-        produto = Produto(
-            nome=nome,
-            descricao=descricao,
-            preco=preco,
-            estoque=estoque,
-        )
-
-        db.session.add(produto)
-        db.session.commit()
-
-        flash("Produto cadastrado com sucesso.")
-        return redirect(url_for("admin_produtos"))
-
-    produtos = Produto.query.order_by(Produto.nome).all()
-
-    conteudo = render_template_string(
-        """
-        <h2>Gerenciar produtos</h2>
-
-        <div class="card">
-            <h3>Cadastrar novo produto</h3>
-
-            <form method="POST">
-                <label>Nome do produto</label>
-                <input type="text" name="nome" maxlength="100" required>
-
-                <label>Descrição</label>
-                <textarea name="descricao" maxlength="250"></textarea>
-
-                <label>Preço (R$)</label>
-                <input type="number" name="preco"
-                       min="0" step="0.01" required>
-
-                <label>Quantidade em estoque</label>
-                <input type="number" name="estoque"
-                       min="0" step="1" required>
-
-                <button type="submit">Cadastrar produto</button>
-            </form>
-        </div>
-
-        <h3>Produtos cadastrados</h3>
-
-        {% for produto in produtos %}
-        <div class="card">
-            <div class="linha">
-                <div>
-                    <h3>{{ produto.nome }}</h3>
-                    <p>{{ produto.descricao }}</p>
-                    <p>
-                        Preço:
-                        R$ {{ "%.2f"|format(produto.preco)|replace(".", ",") }}
-                    </p>
-                    <p>Estoque: {{ produto.estoque }}</p>
-                </div>
-
-                <div>
-                    <a class="botao"
-                       href="{{ url_for('editar_produto',
-                                        produto_id=produto.id) }}">
-                        Editar
-                    </a>
-
-                    <form method="POST"
-                          action="{{ url_for('excluir_produto',
-                                             produto_id=produto.id) }}"
-                          onsubmit="return confirm('Deseja excluir este produto?')"
-                          style="display:inline">
-                        <button class="excluir" type="submit">
-                            Excluir
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <div class="card">Nenhum produto cadastrado.</div>
-        {% endfor %}
-        """,
-        produtos=produtos,
-    )
-
-    return pagina_html("Gerenciar produtos", conteudo)
-
-
-# --------------------------------------------------
-# EDIÇÃO DE PRODUTOS
-# --------------------------------------------------
-
-@app.route(
-    "/admin/produtos/editar/<int:produto_id>",
-    methods=["GET", "POST"],
-)
-@admin_required
-def editar_produto(produto_id):
-    produto = db.session.get(Produto, produto_id)
-
-    if produto is None:
-        flash("Produto não encontrado.")
-        return redirect(url_for("admin_produtos"))
-
-    if request.method == "POST":
-        nome = request.form.get("nome", "").strip()
-        descricao = request.form.get("descricao", "").strip()
-
-        try:
-            preco = float(request.form.get("preco", ""))
-            estoque = int(request.form.get("estoque", ""))
-        except (ValueError, TypeError):
-            flash("Informe um preço e uma quantidade válidos.")
-            return redirect(
-                url_for("editar_produto", produto_id=produto.id)
-            )
-
-        if not nome or len(nome) > 100:
-            flash("Informe um nome válido para o produto.")
-            return redirect(
-                url_for("editar_produto", produto_id=produto.id)
-            )
-
-        if len(descricao) > 250:
-            flash("A descrição deve ter até 250 caracteres.")
-            return redirect(
-                url_for("editar_produto", produto_id=produto.id)
-            )
-
-        if preco < 0 or estoque < 0:
-            flash("Preço e estoque não podem ser negativos.")
-            return redirect(
-                url_for("editar_produto", produto_id=produto.id)
-            )
-
-        produto.nome = nome
-        produto.descricao = descricao
-        produto.preco = preco
-        produto.estoque = estoque
-
-        db.session.commit()
-
-        flash("Produto atualizado com sucesso.")
-        return redirect(url_for("admin_produtos"))
-
-    conteudo = render_template_string(
-        """
-        <div class="card">
-            <h2>Editar produto</h2>
-
-            <form method="POST">
-                <label>Nome</label>
-                <input type="text" name="nome" maxlength="100"
-                       value="{{ produto.nome }}" required>
-
-                <label>Descrição</label>
-                <textarea name="descricao"
-                          maxlength="250">{{ produto.descricao or "" }}</textarea>
-
-                <label>Preço (R$)</label>
-                <input type="number" name="preco" min="0" step="0.01"
-                       value="{{ produto.preco }}" required>
-
-                <label>Estoque</label>
-                <input type="number" name="estoque" min="0" step="1"
-                       value="{{ produto.estoque }}" required>
-
-                <button type="submit">Salvar alterações</button>
-
-                <a class="botao" href="{{ url_for('admin_produtos') }}">
-                    Cancelar
-                </a>
-            </form>
-        </div>
-        """,
-        produto=produto,
-    )
-
-    return pagina_html("Editar produto", conteudo)
-
-
-# --------------------------------------------------
-# EXCLUSÃO DE PRODUTOS
-# --------------------------------------------------
-
-@app.route(
-    "/admin/produtos/excluir/<int:produto_id>",
-    methods=["POST"],
-)
-@admin_required
-def excluir_produto(produto_id):
-    produto = db.session.get(Produto, produto_id)
-
-    if produto is None:
-        flash("Produto não encontrado.")
-        return redirect(url_for("admin_produtos"))
-
-    possui_pedidos = ItemPedido.query.filter_by(
-        produto_id=produto.id
-    ).first()
-
-    if possui_pedidos:
-        flash(
-            "Este produto já possui histórico de pedidos "
-            "e não pode ser excluído."
-        )
-        return redirect(url_for("admin_produtos"))
-
-    db.session.delete(produto)
-    db.session.commit()
-
-    flash("Produto excluído com sucesso.")
-    return redirect(url_for("admin_produtos"))
-
-
-# --------------------------------------------------
-# CRIAÇÃO DO BANCO E PRODUTOS INICIAIS
-# --------------------------------------------------
-
-def inicializar_banco():
-    with app.app_context():
-        db.create_all()
-
-        if Produto.query.count() == 0:
-            produtos_iniciais = [
-                Produto(
-                    nome="Café Tradicional",
-                    descricao="Café para o dia a dia.",
-                    preco=15.90,
-                    estoque=30,
-                ),
-                Produto(
-                    nome="Café Gourmet",
-                    descricao="Café selecionado de qualidade superior.",
-                    preco=24.90,
-                    estoque=20,
-                ),
-                Produto(
-                    nome="Café Especial",
-                    descricao="Aroma marcante e sabor diferenciado.",
-                    preco=32.90,
-                    estoque=15,
-                ),
-                Produto(
-                    nome="Cappuccino",
-                    descricao="Mistura cremosa para preparar sua bebida.",
-                    preco=18.90,
-                    estoque=25,
-                ),
-            ]
-
-            db.session.add_all(produtos_iniciais)
-            db.session.commit()
-
-
-# --------------------------------------------------
-# EXECUÇÃO DA APLICAÇÃO
-# --------------------------------------------------
-import os
-
-if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
