@@ -1129,8 +1129,7 @@ f                <strong>Data:</strong>
 # --------------------------------------------------
 
 @app.route("/admin/produtos", methods=["GET", "POST"])
-@admin_required
-def admin_produtos():
+def gerenciar_produtos_admin():
     if request.method == "POST":
         nome = request.form.get("nome", "").strip()
         descricao = request.form.get("descricao", "").strip()
