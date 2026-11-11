@@ -377,15 +377,15 @@ def inicio():
     <div class="card">
 
         {% if 'tradicional' in produto.nome|lower or 'classico' in produto.nome|lower or 'clássico' in produto.nome|lower %}
-            <img src="{{ url_for('static', filename='icone-cafe-tradicional.jpeg') }}"
+            <img src="/icone-cafe-tradicional.jpeg">
                  class="icone-produto" alt="Café Tradicional">
 
         {% elif 'especial' in produto.nome|lower %}
-            <img src="{{ url_for('static', filename='icone-cafe-especial.jpeg') }}"
+            <img src="/icone-cafe-especial.jpeg">
                  class="icone-produto" alt="Café Especial">
 
         {% elif 'premium' in produto.nome|lower %}
-            <img src="{{ url_for('static', filename='icone-cafe-premium.jpeg') }}"
+            <img src="/icone-cafe-premium.jpeg">
                  class="icone-produto" alt="Café Premium">
         {% endif %}
 
