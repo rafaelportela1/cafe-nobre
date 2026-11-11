@@ -1074,7 +1074,7 @@ def ver_estoque_admin():
 
 @app.route("/pedidos")
 @admin_required
-def pedidos():
+def meus_pedidos():
     lista_pedidos = Pedido.query.order_by(
         Pedido.data_criacao.desc(),
         Pedido.id.desc(),
