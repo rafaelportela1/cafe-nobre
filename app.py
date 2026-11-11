@@ -25,7 +25,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 db = SQLAlchemy(app)
 
 ADMIN_USUARIO = os.environ.get("CAFE_ADMIN_USUARIO", "admin")
-ADMIN_SENHA = os.environ.get("CAFE_ADMIN_SENHA", "CafeNobre@2026")
+ADMIN_SENHA = os.environ.get("CAFE_ADMIN_SENHA", "admin")
 ADMIN_SENHA_HASH = generate_password_hash(ADMIN_SENHA)
 
 
@@ -1028,7 +1028,7 @@ if __name__ == "__main__":
 
 @app.route("/ver-estoque")
 @admin_required
-def ver_estoque():
+def ver_estoque_admin():
     produtos = Produto.query.order_by(Produto.nome).all()
 
     conteudo = render_template_string(
@@ -1409,7 +1409,6 @@ def inicializar_banco():
 # --------------------------------------------------
 # EXECUÇÃO DA APLICAÇÃO
 # --------------------------------------------------
-
 import os
 
 if __name__ == '__main__':
