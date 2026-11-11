@@ -1019,7 +1019,9 @@ def inicializar_banco():
             db.session.commit()
 
 
+import os
+
+
 if __name__ == "__main__":
-    inicializar_banco()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
